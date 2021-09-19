@@ -1,10 +1,10 @@
 package common
 
-trait schemaList {
+object schemaList {
 
-  case class FactTable(UserId: Int, event_date: String, web_pageId: Int)
+  case class FactTable(USER_ID: Int, EVENT_DATE: String, WEB_PAGEID: Int)
 
-  case class LookUpTable(web_pageId: Int, webPage_Type: String)
+  case class LookUpTable(WEB_PAGEID: Int, WEBPAGE_TYPE: String)
 
   case class InputConfig(pageType: Array[String], metricType: Array[String], timeWindow: Array[String], dateOfReference: String)
 

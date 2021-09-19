@@ -15,10 +15,12 @@ object readWriteMethods {
   }
 
   def WriteOutputToCSV(resultDF: DataFrame, fileOutPath: String, partitionedCol:String):Unit ={
-    logger.info("Write to CSV")
-   resultDF.coalesce(1).write //.partitionBy(partitionedCol)
-      .option("header", "true")
-      .csv(fileOutPath)
+    logger.info("Writing to CSV")
+
+   resultDF.repartition(1).write
+            .partitionBy("dateOfRef")
+            .option("header", "true")
+            .csv(fileOutPath)
 
   }
 

@@ -10,8 +10,7 @@ lazy val  spark:SparkSession =   SparkSession.builder.appName("HelloSpark")
     .master("local")
     .getOrCreate()
 
-  val testFile = "/Users/gargi/Documents/InterviewQuestions/SparkScalaTest/src/main/resources/mockFile.csv"
-  //val lookUpFilePath: String = "/Users/gargi/Documents/InterviewQuestions/SparkScalaTest/src/main/resources/lookup.csv"
+  val testFile = "/SparkScalaTest/src/main/resources/mockFile.csv"
 
   /*
   override def beforeAll():Unit ={
@@ -26,10 +25,9 @@ lazy val  spark:SparkSession =   SparkSession.builder.appName("HelloSpark")
     spark.stop()
   } */
 
-test("create a session") {
+ test("create a session") {
     val spark2 = createSparkSession()
   }
-
 
   test("verify frequency metrics"){
 

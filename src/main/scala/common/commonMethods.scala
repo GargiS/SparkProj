@@ -7,6 +7,7 @@ import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 import scala.collection.mutable.ListBuffer
 import org.slf4j.LoggerFactory
 object commonMethods {
+
   private val logger = LoggerFactory.getLogger(getClass.getName)
   def createSparkSession(): SparkSession =
   {
@@ -34,8 +35,6 @@ object commonMethods {
 
     var dataframeList: ListBuffer[org.apache.spark.sql.DataFrame] = ListBuffer()
 
- //   val outputDF = spark.emptyDataFrame
-
     pageType.foreach { pType =>
 
       val columnName = "pageview_" + pType.trim + "_" + "dur"
@@ -46,14 +45,13 @@ object commonMethods {
         .withColumn("dateOfRef", to_date(to_timestamp(lit(referenceDate), "dd/MM/yyyy"), "dd-MMM-yyyy"))
         .withColumn("newEvent_date", to_date(to_timestamp($"EVENT_DATE", "dd/MM/yyyy HH:mm"), "dd-MMM-yyyy"))
         .withColumn(columnName,datediff($"dateOfRef",$"newEvent_date"))
-        .select("USER_ID", columnName)
+        .select("USER_ID", columnName).distinct
 
      dataframeList += tempDF
 
     }
 
     val outputDF = dataframeList.reduce(_.join(_, Seq("USER_ID"), "full_outer"))
-
     outputDF
   }
 
@@ -72,14 +70,13 @@ object commonMethods {
         val tempDF =  dateChangedInputDF.filter($"WEBPAGE_TYPE" === pType)
           .withColumn("newEvent_date",to_date(to_timestamp($"EVENT_DATE", "dd/MM/yyyy HH:mm"),"dd-MMM-yyyy"))
           .withColumn("daysDiff",datediff(current_date(),$"newEvent_date" ))
-          .filter($"daysDiff" <= timeX.toInt) // && $"daysDiff" >=0
-          .withColumn(columnName,count("*") over Window.partitionBy($"USER_ID").orderBy($"USER_ID"))
+          .filter($"daysDiff" <= timeX.toInt)
+          .groupBy($"USER_ID").agg(count("*") as columnName)
           .select("USER_ID",columnName)
 
-        tempDF.show()
+       // tempDF.show()
         dataframeList += tempDF
       }
-
     }
 
     val freResultDF = dataframeList.reduce(_.join(_, Seq("USER_ID"), "full_outer"))

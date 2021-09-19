@@ -11,7 +11,7 @@ class readWriteMethodsTest extends FunSuite with BeforeAndAfterAll{
 
   lazy val  spark = SparkSession.builder().appName("helloSpark").master("local").getOrCreate()
 
-  val testFile = "/Users/gargi/Documents/InterviewQuestions/SparkScalaTest/src/main/resources/fact.csv"
+  val testFile = "/SparkScalaTest/src/main/resources/fact.csv"
 
   override def beforeAll():Unit ={
     val df : DataFrame = spark.read
