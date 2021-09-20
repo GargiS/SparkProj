@@ -9,6 +9,11 @@ import org.slf4j.LoggerFactory
 object commonMethods {
 
   private val logger = LoggerFactory.getLogger(getClass.getName)
+
+  /***
+    createSparkSession : function creates and return SparkSession
+    (parameters can be added later)
+   ***/
   def createSparkSession(): SparkSession =
   {
     logger.info("Creating Session..")
@@ -20,15 +25,29 @@ object commonMethods {
     spark
   }
 
-  def mergeDF(inputDS: DataFrame, lookupDS: DataFrame,column :String,joinTyp :String):DataFrame = {
+  /***
+   * mergeDF : function to join/merge 2 dataframes
+   * @param inputDS1 , inputDS2 : input Dataframes to be joined
+   * @param column :  column Name to be used in join Condition
+   * @param joinTyp : the type of join to be applied
+   * @return : merged/joined DataFrame
+   */
+  def mergeDF(inputDS1: DataFrame, inputDS2: DataFrame,column :String,joinTyp :String):DataFrame = {
     logger.info("Merging DF")
-    val changedInput = inputDS.join(lookupDS,inputDS(column) === lookupDS(column) ,joinTyp)
-      .drop(inputDS.col(column))
+    val changedInput = inputDS1.join(inputDS2,inputDS1(column) === inputDS2(column) ,joinTyp)
+      .drop(inputDS1.col(column))
 
     changedInput
   }
 
-
+  /***
+   * applyDuration : function to apply Duration metrics
+   * @param spark : current SparkSession
+   * @param inputDF : Input DataFrame
+   * @param pageType : Type of page ( input parameters)
+   * @param referenceDate : Date of Reference ( input parameters)
+   * @return  result DataFrame
+   */
   def applyDuration(spark:SparkSession,inputDF:DataFrame, pageType: Array[String],referenceDate:String ):DataFrame = {
 
     import spark.implicits._
@@ -48,13 +67,20 @@ object commonMethods {
         .select("USER_ID", columnName).distinct
 
      dataframeList += tempDF
-
     }
 
     val outputDF = dataframeList.reduce(_.join(_, Seq("USER_ID"), "full_outer"))
     outputDF
   }
 
+  /***
+   * applyFreqMetric : Function to generate and apply  metric.
+   * @param spark : current Spark Session
+   * @param dateChangedInputDF : input DataFrame
+   * @param pageType : Type of page ( input parameters)
+   * @param timeWindow : Time ranges (in days) to be applied
+   * @return : resultant DataFrame
+   */
   def applyFreqMetric(spark:SparkSession,dateChangedInputDF: DataFrame, pageType: Array[String],  timeWindow: Array[String]): DataFrame = {
 
     var dataframeList: ListBuffer[org.apache.spark.sql.DataFrame] = ListBuffer()
