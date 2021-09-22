@@ -14,6 +14,7 @@
 
     def main(args: Array[String]) {
 
+      /** Input Argument needed =  <pageType:metricType:TimeWindow:dateOfReference> */
      if (args.length < 3 ) {
         logger.warn("No Argument passed")
         System.exit(1)
@@ -50,8 +51,8 @@
       /** add input DataOfReference to result dataframe */
       //val resultWithRefDateDF = resultDF.withColumn("DateOfRef",lit(inputConfig.dateOfReference))
 
-      println("Details.....")
-      resultDF.show()
+     // println("Details.....")
+     // resultDF.show()
 
       /** Write Output  */
       WriteOutputToCSV(resultDF,outFilePath, inputConfig.dateOfReference)
