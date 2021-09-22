@@ -1,8 +1,11 @@
   import org.apache.spark.sql._
   import org.apache.spark.sql.expressions._
   import org.apache.spark.sql.functions._
-
-  import common.{readWriteMethods,commonMethods,schemaList,staticData},readWriteMethods._,commonMethods._,staticData._,schemaList._
+  import common.{commonMethods, readWriteMethods, schemaList, staticData}
+  import readWriteMethods._
+  import commonMethods._
+  import staticData._
+  import schemaList._
   import org.slf4j.LoggerFactory
 
   object SparkScalaProj  {
@@ -17,10 +20,11 @@
       }
 
       /** Mapping runtime arguments to InputConfig case class  */
-      val inputConfig : InputConfig = InputConfig(pageType = args(1).split(",").map(_.trim)
-        ,metricType = args(2).split(",").map(_.trim)
-        ,timeWindow= args(3).split(",").map(_.trim)
-        ,dateOfReference=args(4).trim)
+
+      val inputConfig : InputConfig = InputConfig(pageType = args(0).split(",").map(_.trim)
+        ,metricType = args(1).split(",").map(_.trim)
+        ,timeWindow= args(2).split(",").map(_.trim)
+        ,dateOfReference=args(3).trim)
 
       /** create SparkSession  */
       val spark = createSparkSession()
@@ -30,15 +34,11 @@
       import spark.implicits._
 
       /** read input File from location to dataframe */
-      val inputData = readInputFile(spark, factFilePath)
-      val lookUpData = readInputFile(spark, lookUpFilePath)
-
-      /** Map input to case class with correct data type */
-      val inputDataDS = inputData.map(r => FactTable(r.getAs[String](0).toInt, r.getAs[String](1), r.getAs[String](2).toInt)).toDF()
-      val lookUpDS = lookUpData.map(r => LookUpTable(r.getAs[String](0).toInt, r.getAs[String](1))).toDF()
+      val inputDataDF = readInputFile(spark, factFilePath)
+      val lookUpDataDF = readInputFile(spark, lookUpFilePath)
 
       /** add details from Lookup Table */
-      val changedInput = mergeDF(inputDataDS, lookUpDS, "WEB_PAGEID", "inner")
+      val changedInput = mergeDF(inputDataDF, lookUpDataDF, "WEB_PAGEID", "inner")
 
       /** call function to generate and apply metrics */
       val freResultDF = applyFreqMetric(spark,changedInput,inputConfig.pageType, inputConfig.timeWindow)
@@ -48,13 +48,26 @@
       val resultDF = mergeDF(freResultDF, durResultDF, "USER_ID", "outer")
 
       /** add input DataOfReference to result dataframe */
-      val resultWithRefDateDF = resultDF.withColumn("DateOfRef",lit(inputConfig.dateOfReference))
+      //val resultWithRefDateDF = resultDF.withColumn("DateOfRef",lit(inputConfig.dateOfReference))
 
-      //resultWithRefDateDF.show()
+      println("Details.....")
+      resultDF.show()
+
       /** Write Output  */
-      WriteOutputToCSV(resultWithRefDateDF, outFilePath, inputConfig.dateOfReference)
+      WriteOutputToCSV(resultDF,outFilePath, inputConfig.dateOfReference)
 
     }
 
   }
 
+
+  /**
+
+   for the given use case only , 1 file has been generated
+
+   Strict Type checking: For stricter dqta type checking, define case class and verify
+   Partitioning strategy:The ouput can be partitioned on dateofReference/pageType, depends on downstream requirement
+   no of output files: The number of output files can be repartitioned ,based on further details
+   Broadcast join: Based on the cluster configuration, for merging lookup file broadcast join can be used for improving performance.
+
+   **/

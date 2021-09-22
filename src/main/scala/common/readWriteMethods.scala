@@ -1,6 +1,6 @@
 package common
 
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.slf4j.LoggerFactory
 
 object readWriteMethods {
@@ -15,7 +15,7 @@ object readWriteMethods {
     val InputDataFrame =   spark.read.format("csv")
       .option("delimiter", "\t")
       .option("header","true")
-      .load(inputFilePath)
+      .load(getClass.getResource(inputFilePath).toString())
     InputDataFrame
   }
 
@@ -25,12 +25,14 @@ object readWriteMethods {
 
   def WriteOutputToCSV(resultDF: DataFrame, fileOutPath: String, partitionedCol:String):Unit ={
 
-    logger.info("Writing to CSV")
+    logger.info("Writing to CSV" + fileOutPath)
 
    resultDF.repartition(1).write
-            .partitionBy("dateOfRef")
+          //  .partitionBy("dateOfRef")
             .option("header", "true")
+            .mode(SaveMode. Overwrite)
             .csv(fileOutPath)
+
 
   }
 
