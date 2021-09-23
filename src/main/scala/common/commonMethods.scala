@@ -12,7 +12,7 @@
 
     val eventFilter = (eventColumn:Column, eventType:String) => eventColumn === eventType
     val dateFilter = (dateColumn:Column, daysToCheck: Int) => {
-      val formattedDate = date_format(to_timestamp(dateColumn, "dd/MM/yyyy HH:mm"),"dd-MM-yyyy")
+      val formattedDate = to_date(to_timestamp(dateColumn, "dd/MM/yyyy HH:mm"),"dd-MM-yyyy")
       val diffInDays = datediff(current_date(),formattedDate)
       diffInDays <= daysToCheck
     }
@@ -53,9 +53,11 @@
      * @param inputDF : Input DataFrame
      * @param pageType : Type of page ( input parameters)
      * @param referenceDate : Date of Reference ( input parameters)
-     * @return  result DataFrame
      */
     def applyDuration(spark:SparkSession,inputDF:DataFrame, pageType: Array[String],referenceDate:String ):DataFrame = {
+
+      //1. Filter records as per pageType and with event_date less than reference date
+      //2. Group by userId and generate metric (datediff between reference date and event_date)
 
       import spark.implicits._
       val userIdDF = inputDF.select(col("USER_ID")).distinct
@@ -81,17 +83,19 @@
      * @param dateChangedInputDF : input DataFrame
      * @param pageType : Type of page ( input parameters)
      * @param timeWindow : Time ranges (in days) to be applied
-     * @return : resultant DataFrame
      */
+
     def applyFreqMetric(spark:SparkSession,dateChangedInputDF: DataFrame, pageType: Array[String],  timeWindow: Array[String]): DataFrame = {
 
       val userIdDF = dateChangedInputDF.select(col("USER_ID")).distinct
 
+      // 1. Filter records as per pageType and if event date lies within timeWindow
+      // 2. Group by user and calculate count for the metric (datediff between current_date and event_date)
+
      val outputDF = pageType.flatMap(et => timeWindow.map(tw => dateChangedInputDF
-              .filter(eventFilter(col("WEBPAGE_TYPE"),et) )
-              .withColumn("formattedDate",to_date(to_timestamp(col("EVENT_DATE"), "dd/MM/yyyy HH:mm"),"dd-MMM-yyyy"))
+               .withColumn("formattedDate",to_date(to_timestamp(col("EVENT_DATE"), "dd/MM/yyyy HH:mm"),"dd-MMM-yyyy"))
               .withColumn("daysDiff",datediff(current_date(),col("formattedDate" )))
-              .filter(col("daysDiff") <= lit(tw))
+              .filter(eventFilter(col("WEBPAGE_TYPE"),et) && col("daysDiff") <= lit(tw))
               .groupBy(col("USER_ID"))
               .count
               .withColumnRenamed("count","pageview" + "_" + et + "_fre_" + tw)
