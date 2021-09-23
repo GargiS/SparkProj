@@ -8,11 +8,12 @@ Approach:
 4. Merge/Join all metrics generated at step3
 5. Write the output to CSV file.
 
+
 Deployment Steps:
 1. Install sbt and run deploy.sh
 
-Optimizations/Next Steps:
 
+Optimizations/Next Steps:
 1. Strict Type checking: For stricter dqta type checking, define case class and verify
 2. Partitioning Strategy:The output can be partitioned on dateofReference/pageType, depends on downstream requirement
 3. Configuration for Output Files: The number of output/records per file can be changed as per requirements
