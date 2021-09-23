@@ -1,5 +1,5 @@
 
-The purpose is to generate RF (recency, frequency) metrics for page views for each user
+The purpose of this project is to generate RF (recency, frequency) metrics for page views for each user
 
 Approach:
 1. Read Input Files to DataFrame
