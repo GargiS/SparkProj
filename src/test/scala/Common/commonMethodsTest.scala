@@ -1,6 +1,7 @@
 package Common
 
 import common.commonMethods._
+import common.readWriteMethods.getClass
 import org.apache.spark.sql._
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
@@ -10,7 +11,7 @@ lazy val  spark:SparkSession =   SparkSession.builder.appName("HelloSpark")
     .master("local")
     .getOrCreate()
 
-  val testFile = "/SparkScalaTest/src/main/resources/mockFile.csv"
+  val testFile = "/mockFile.csv"
 
   /*
   override def beforeAll():Unit ={
@@ -31,11 +32,9 @@ lazy val  spark:SparkSession =   SparkSession.builder.appName("HelloSpark")
 
   test("verify frequency metrics"){
 
-    import spark.implicits._
-
     spark.sparkContext.setLogLevel("WARN")
   val df : DataFrame = spark.read.option("header", "true").option("inferSchema","true")
-                              .option("delimiter","\t").csv(testFile)
+                              .option("delimiter","\t").csv(getClass.getResource(testFile).toString())
 
    val outputDF = applyFreqMetric(spark,df,Array("news"),  Array("365"))
     val userIdDetails = outputDF
@@ -47,11 +46,11 @@ lazy val  spark:SparkSession =   SparkSession.builder.appName("HelloSpark")
   }
 
   test("merge two dataframes") {
-    import spark.implicits._
+    //import spark.implicits._
 
     spark.sparkContext.setLogLevel("WARN")
     val df : DataFrame = spark.read.option("header", "true").option("inferSchema","true")
-      .option("delimiter","\t").csv(testFile)
+      .option("delimiter","\t").csv(getClass.getResource(testFile).toString())
 
     val outputDF = applyDuration(spark,df,Array("news"),  "12/10/2021")
 

@@ -52,7 +52,7 @@
       //val resultWithRefDateDF = resultDF.withColumn("DateOfRef",lit(inputConfig.dateOfReference))
 
      // println("Details.....")
-     // resultDF.show()
+      //resultDF.show()
 
       /** Write Output  */
       WriteOutputToCSV(resultDF,outFilePath, inputConfig.dateOfReference)
@@ -60,15 +60,3 @@
     }
 
   }
-
-
-  /**
-
-   for the given use case only , 1 file has been generated
-
-   Strict Type checking: For stricter dqta type checking, define case class and verify
-   Partitioning strategy:The ouput can be partitioned on dateofReference/pageType, depends on downstream requirement
-   no of output files: The number of output files can be repartitioned ,based on further details
-   Broadcast join: Based on the cluster configuration, for merging lookup file broadcast join can be used for improving performance.
-
-   **/
