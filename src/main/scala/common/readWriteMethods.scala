@@ -30,7 +30,7 @@ object readWriteMethods {
    resultDF.repartition(1).write
           //  .partitionBy("dateOfRef")
             .option("header", "true")
-            .mode(SaveMode. Overwrite)
+            .mode(SaveMode.Overwrite)
             .csv(fileOutPath)
 
 

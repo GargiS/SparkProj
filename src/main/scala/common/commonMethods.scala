@@ -41,6 +41,7 @@
      */
     def mergeDF(inputDS1: DataFrame, inputDS2: DataFrame,column :String,joinTyp :String):DataFrame = {
       logger.info("Merging DF")
+
       val changedInput = inputDS1.join(inputDS2,inputDS1(column) === inputDS2(column) ,joinTyp)
         .drop(inputDS2.col(column))
 
@@ -56,6 +57,7 @@
      */
     def applyDuration(spark:SparkSession,inputDF:DataFrame, pageType: Array[String],referenceDate:String ):DataFrame = {
 
+      logger.info("Generate Duration Metrics..")
       //1. Filter records as per pageType and with event_date less than reference date
       //2. Group by userId and generate metric (datediff between reference date and event_date)
 
@@ -87,6 +89,7 @@
 
     def applyFreqMetric(spark:SparkSession,dateChangedInputDF: DataFrame, pageType: Array[String],  timeWindow: Array[String]): DataFrame = {
 
+      logger.info("Generate Frequency Metric ..")
       val userIdDF = dateChangedInputDF.select(col("USER_ID")).distinct
 
       // 1. Filter records as per pageType and if event date lies within timeWindow

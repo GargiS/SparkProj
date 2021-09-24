@@ -31,15 +31,19 @@
       val spark = createSparkSession()
       spark.sparkContext.setLogLevel("WARN")
 
-      logger.info("Main Started")
+      logger.info("Main Started.. ")
       import spark.implicits._
 
       /** read input File from location to dataframe */
       val inputDataDF = readInputFile(spark, factFilePath)
       val lookUpDataDF = readInputFile(spark, lookUpFilePath)
 
-      /** add details from Lookup Table */
-      val changedInput = mergeDF(inputDataDF, lookUpDataDF, "WEB_PAGEID", "inner")
+      logger.info("Broadcasting Lookup Table ")
+      /** broadcasting Lookup Table and merging with input dataFrame*/
+      val changedInput = inputDataDF
+                        .join(broadcast(lookUpDataDF),inputDataDF.col("WEB_PAGEID") === lookUpDataDF.col("WEB_PAGEID") )
+                        .select("USER_ID","EVENT_DATE","WEBPAGE_TYPE")
+
 
       /** call function to generate and apply metrics */
       val freResultDF = applyFreqMetric(spark,changedInput,inputConfig.pageType, inputConfig.timeWindow)
@@ -49,14 +53,16 @@
       val resultDF = mergeDF(freResultDF, durResultDF, "USER_ID", "outer")
 
       /** add input DataOfReference to result dataframe */
-      //val resultWithRefDateDF = resultDF.withColumn("DateOfRef",lit(inputConfig.dateOfReference))
+      val resultWithRefDateDF = resultDF.withColumn("DateOfRef",lit(inputConfig.dateOfReference))
 
      // println("Details.....")
-      //resultDF.show()
+      resultDF.show()
 
       /** Write Output  */
       WriteOutputToCSV(resultDF,outFilePath, inputConfig.dateOfReference)
 
     }
+
+
 
   }
